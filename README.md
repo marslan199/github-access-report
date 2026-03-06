@@ -1,61 +1,149 @@
+<div align="center">
+
 # GitHub Access Report Service
 
-A production-quality Spring Boot service that connects to the GitHub API and generates a report showing which users have access to which repositories within a GitHub organization.
+A production-quality **Spring Boot service** that connects to the GitHub API and generates a report showing **which users have access to which repositories** inside a GitHub organization.
 
-## Prerequisites
+Built for reliability, scalability, and clean API design.
 
-- Java 21+
-- Maven 3.8+
-- A GitHub Personal Access Token with `read:org` and `repo` scopes
+<br>
 
-## Configuration
+![Java](https://img.shields.io/badge/Java-21-orange)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.3-brightgreen)
+![WebFlux](https://img.shields.io/badge/WebFlux-Reactive-blue)
+![Build](https://img.shields.io/badge/Maven-Build-red)
+![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
-The service reads the GitHub token from an environment variable. Set it before running:
+</div>
 
-**Windows (PowerShell):**
-```powershell
-$env:GITHUB_TOKEN = "ghp_your_token_here"
+---
+
+# Overview
+
+Organizations often need visibility into **who has access to which repositories** across their GitHub organization.
+
+This service connects to the **GitHub REST API** and generates an **aggregated access report** mapping users to the repositories they can access.
+
+It is designed to scale efficiently even for large organizations with:
+
+- **100+ repositories**
+- **1000+ collaborators**
+
+The service exposes a clean REST API that returns the report in **structured JSON format**.
+
+---
+
+# Features
+
+| Feature | Description |
+|------|-------------|
+| GitHub API Integration | Connects securely to GitHub using a personal access token |
+| Repository Discovery | Fetches all repositories within an organization |
+| Access Mapping | Determines which users have access to each repository |
+| Aggregated Reporting | Produces a user → repository mapping |
+| High Concurrency | Fetches collaborator data in parallel |
+| Pagination Support | Automatically handles GitHub API pagination |
+| Thread-Safe Aggregation | Uses concurrent structures to support parallel processing |
+| Structured Error Handling | RFC 7807 ProblemDetail responses |
+
+---
+
+# Table of Contents
+
+- [Prerequisites](#prerequisites)
+- [Configuration](#configuration)
+- [Running the Project](#running-the-project)
+- [API Usage](#api-usage)
+- [Architecture & Design Decisions](#architecture--design-decisions)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+
+---
+
+# Prerequisites
+
+Before running the project ensure you have:
+
+- **Java 21+**
+- **Maven 3.8+**
+- A **GitHub Personal Access Token**
+
+Required GitHub scopes:
+
 ```
 
-**Linux / macOS:**
+read:org
+repo
+
+````
+
+---
+
+# Configuration
+
+The service reads the GitHub token from an **environment variable**.
+
+### Windows (PowerShell)
+
+```powershell
+$env:GITHUB_TOKEN = "ghp_your_token_here"
+````
+
+### Linux / macOS
+
 ```bash
 export GITHUB_TOKEN=ghp_your_token_here
 ```
 
 The `application.yml` binds this value automatically:
+
 ```yaml
 github:
   api:
     token: ${GITHUB_TOKEN}
 ```
 
-## Running the Project
+---
+
+# Running the Project
+
+Run the application using Maven:
 
 ```bash
 mvn spring-boot:run
 ```
 
-The server starts on port **8080** by default.
+The server starts on:
 
-## API Usage
+```
+http://localhost:8080
+```
 
-### Endpoint
+---
+
+# API Usage
+
+## Endpoint
 
 ```
 GET /api/access-report?org={organization}
 ```
 
-| Parameter | Type   | Required | Description                     |
-|-----------|--------|----------|---------------------------------|
-| `org`     | String | Yes      | GitHub organization login name  |
+| Parameter | Type   | Required | Description                    |
+| --------- | ------ | -------- | ------------------------------ |
+| org       | String | Yes      | GitHub organization login name |
 
-### Example Request
+---
+
+## Example Request
 
 ```bash
 curl "http://localhost:8080/api/access-report?org=my-org"
 ```
 
-### Example Response
+---
+
+## Example Response
 
 ```json
 {
@@ -73,22 +161,26 @@ curl "http://localhost:8080/api/access-report?org=my-org"
 }
 ```
 
-### Error Responses
+---
 
-All errors return RFC 7807 `ProblemDetail` JSON:
+# Error Responses
 
-| Scenario                 | HTTP Status |
-|--------------------------|-------------|
-| Organization not found   | `404`       |
-| Invalid/missing token    | `401`       |
-| GitHub API error         | Mirrors GitHub's status |
-| Blank `org` parameter    | `400`       |
+All errors follow **RFC 7807 ProblemDetail format**.
 
-## Architecture & Design Decisions
+| Scenario                 | HTTP Status             |
+| ------------------------ | ----------------------- |
+| Organization not found   | 404                     |
+| Invalid or missing token | 401                     |
+| GitHub API error         | Mirrors GitHub response |
+| Blank `org` parameter    | 400                     |
 
-### Reactive Pipeline with Bounded Concurrency
+---
 
-The core of the service is a reactive Flux pipeline in `AccessReportService`:
+# Architecture & Design Decisions
+
+## Reactive Pipeline with Bounded Concurrency
+
+The service uses a **reactive processing pipeline** built with Spring WebFlux.
 
 ```
 fetchOrgRepositories(org)
@@ -96,53 +188,131 @@ fetchOrgRepositories(org)
          └─ aggregator.addAccess(user, repo)
 ```
 
-`flatMap` with a concurrency limit of **20** allows up to 20 collaborator API calls to run in parallel at any time, making the service fast for large orgs (100+ repos, 1000+ users) while avoiding GitHub rate-limit exhaustion.
+The concurrency limit of **20 parallel requests** allows fast processing for large organizations while avoiding GitHub rate-limit exhaustion.
 
-### Pagination
+---
 
-`GithubApiClient.paginateFlux()` is a generic helper that keeps fetching pages until GitHub returns an empty page — matching GitHub's documented pagination termination behavior. `per_page` is configurable in `application.yml` (default: 100, the GitHub maximum).
+## Pagination
 
-### Thread-Safe Aggregation
+GitHub returns paginated results.
 
-`ConcurrentAggregator` uses a `ConcurrentHashMap` with `computeIfAbsent` and a `Collections.synchronizedList` per user to safely collect results written by multiple concurrent Reactor threads.
+`GithubApiClient.paginateFlux()` automatically continues requesting pages until GitHub returns an empty response.
 
-### Error Handling
+The `per_page` value is configurable in `application.yml`.
 
-- `GlobalExceptionHandler` maps domain exceptions and `WebClientResponseException` to structured RFC 7807 `ProblemDetail` responses.
-- `403 Forbidden` and `404 Not Found` on collaborator endpoints are silently skipped (e.g., private repos the token can't inspect), so the report is always returned rather than failing.
+Default:
 
-### Tech Stack
+```
+per_page = 100
+```
 
-| Component         | Technology             |
-|-------------------|------------------------|
-| Framework         | Spring Boot 3.4.3      |
-| Java Version      | Java 21                |
-| HTTP Client       | Spring WebFlux WebClient |
-| JSON              | Jackson (via Spring)   |
-| Build             | Maven                  |
+Which is the maximum supported by GitHub.
 
-## Project Structure
+---
+
+## Thread-Safe Aggregation
+
+Because collaborator requests run concurrently, aggregation must be thread-safe.
+
+`ConcurrentAggregator` uses:
+
+```
+ConcurrentHashMap
+computeIfAbsent
+Collections.synchronizedList
+```
+
+This ensures safe writes from multiple Reactor threads.
+
+---
+
+## Error Handling
+
+Centralized error handling is implemented using:
+
+```
+GlobalExceptionHandler
+```
+
+It converts domain exceptions and GitHub API errors into structured **ProblemDetail responses**.
+
+Special cases:
+
+* `403 Forbidden`
+* `404 Not Found`
+
+on collaborator endpoints are ignored to avoid failing the entire report.
+
+---
+
+# Tech Stack
+
+| Component   | Technology               |
+| ----------- | ------------------------ |
+| Framework   | Spring Boot 3.4.3        |
+| Language    | Java 21                  |
+| HTTP Client | Spring WebFlux WebClient |
+| JSON        | Jackson                  |
+| Build Tool  | Maven                    |
+
+---
+
+# Project Structure
 
 ```
 src/main/java/com/example/githubaccess/
+
 ├── GithubAccessApplication.java
+
 ├── config/
-│   └── GithubConfig.java           # WebClient bean with auth headers
+│   └── GithubConfig.java
+
 ├── controller/
-│   └── AccessReportController.java # REST endpoint
+│   └── AccessReportController.java
+
 ├── service/
-│   └── AccessReportService.java    # Orchestration & aggregation logic
+│   └── AccessReportService.java
+
 ├── client/
-│   └── GithubApiClient.java        # GitHub API pagination & calls
+│   └── GithubApiClient.java
+
 ├── model/
-│   ├── RepositoryResponse.java     # GitHub repo DTO
-│   ├── CollaboratorResponse.java   # GitHub collaborator DTO
-│   ├── UserAccessReport.java       # Per-user output DTO
-│   └── AccessReportResponse.java   # Top-level response DTO
+│   ├── RepositoryResponse.java
+│   ├── CollaboratorResponse.java
+│   ├── UserAccessReport.java
+│   └── AccessReportResponse.java
+
 ├── util/
-│   └── ConcurrentAggregator.java   # Thread-safe user→repo map
+│   └── ConcurrentAggregator.java
+
 └── exception/
-    └── GlobalExceptionHandler.java # RFC 7807 error handling
+    └── GlobalExceptionHandler.java
+
 src/main/resources/
 └── application.yml
 ```
+
+---
+
+# Contributing
+
+Contributions are welcome. If you'd like to improve the project:
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Open a pull request
+
+---
+
+# License
+
+This project is released under the **MIT License**.
+
+---
+
+# Author
+
+Created by **Sonu Jana**
+
+If this project helps you, consider giving it a ⭐ on GitHub.
