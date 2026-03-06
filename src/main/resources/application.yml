@@ -12,3 +12,8 @@ github:
     per-page: 100
     connect-timeout-seconds: 10
     read-timeout-seconds: 30
+
+logging:
+  level:
+    com.example.githubaccess: INFO
+    com.example.githubaccess.client: DEBUG
